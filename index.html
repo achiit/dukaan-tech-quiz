@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tech Quiz: Students and Teachers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EAEEF6; --sheet:#F9FAFD; --ink:#101A33; --soft:#56607A; --line:#C9D0E0;
+  --blue:#2B50F5; --mark:#FFE45C; --good:#0E8F48; --bad:#D6304A; --tint:#E3E9FB;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1120; --sheet:#151C32; --ink:#E9EDFA; --soft:#98A2C0; --line:#2B3552;
+    --blue:#7B93FF; --mark:#FFE45C; --good:#3DD17F; --bad:#FF6A80; --tint:#1E2848;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1120; --sheet:#151C32; --ink:#E9EDFA; --soft:#98A2C0; --line:#2B3552;
+  --blue:#7B93FF; --mark:#FFE45C; --good:#3DD17F; --bad:#FF6A80; --tint:#1E2848;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+code{font-family:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;font-size:.88em;
+  background:var(--tint);padding:.1em .4em;border-radius:5px;white-space:pre-wrap}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px;border-radius:6px}
+.wrap{max-width:880px;margin:0 auto;padding:20px 20px 64px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;padding:6px 0 28px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.01em;
+  background:none;border:0;padding:0}
+.dots{display:grid;grid-template-columns:repeat(2,11px);gap:3px}
+.dots i{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink)}
+.dots i.on{background:var(--ink)}
+.theme{background:none;border:1.5px solid var(--line);border-radius:999px;padding:6px 14px;font-size:14px;color:var(--soft)}
+.theme:hover{border-color:var(--ink);color:var(--ink)}
+
+/* answer sheet */
+.sheet{position:relative;background:var(--sheet);border:1.5px solid var(--ink);border-radius:16px;
+  padding:28px 52px 28px 28px}
+.sheet::after{content:"";position:absolute;right:16px;top:24px;bottom:24px;width:12px;
+  background:repeating-linear-gradient(to bottom,var(--ink) 0 7px,transparent 7px 19px);opacity:.85}
+@media (max-width:560px){.sheet{padding:20px 38px 20px 18px}.sheet::after{right:12px;width:9px}}
+
+h1{font-size:clamp(38px,7vw,64px);line-height:1;letter-spacing:-.035em;font-weight:800;margin:0 0 16px}
+h2{font-size:24px;letter-spacing:-.02em;margin:0 0 6px}
+p{margin:0}
+.lead{color:var(--soft);font-size:19px;max-width:46ch}
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:36px;align-items:center;padding:12px 0 52px}
+@media (max-width:760px){.hero{grid-template-columns:1fr;gap:28px}}
+
+/* bubbles & options */
+.bub{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;
+  font-weight:600;font-size:14px;background:transparent;transition:background .15s,border-color .15s,color .15s}
+.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:none;border:0;
+  border-bottom:1.5px dashed var(--line);padding:13px 8px;border-radius:0;min-height:56px}
+.opt:last-child{border-bottom:0}
+.opt:not(:disabled):hover{background:var(--tint)}
+.opt:not(:disabled):hover .bub{background:var(--mark);color:#101A33;border-color:#101A33}
+.opt:disabled{cursor:default}
+.opt.right .bub{background:var(--good);border-color:var(--good);color:#fff}
+.opt.wrong .bub{background:var(--bad);border-color:var(--bad);color:#fff}
+.opt.right{background:color-mix(in srgb,var(--good) 12%,transparent)}
+.opt.wrong{background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.opt.dim{opacity:.55}
+.lbl{flex:1}
+.q{font-size:clamp(22px,4vw,30px);line-height:1.2;letter-spacing:-.02em;font-weight:600;margin:0 0 14px}
+.q:focus{outline:none}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);border:2px solid var(--ink);
+  border-radius:999px;padding:12px 24px;font-weight:600;font-size:17px;min-height:48px;transition:transform .12s,background .12s}
+.btn:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.ghost:hover{background:var(--tint);color:var(--ink);border-color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+
+/* settings */
+.settings{display:flex;flex-wrap:wrap;gap:12px 28px;margin:20px 0 8px}
+.set{display:flex;align-items:center;gap:10px;color:var(--soft);font-size:15px}
+.seg{display:inline-flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden}
+.seg button{background:transparent;border:0;padding:7px 16px;font-size:15px;min-height:38px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* topics */
+.topic{display:flex;align-items:center;gap:16px;width:100%;text-align:left;background:none;border:0;
+  border-bottom:1.5px dashed var(--line);padding:16px 8px;min-height:72px}
+.topic:last-child{border-bottom:0}
+.topic:hover{background:var(--tint)}
+.topic:hover .glyph{background:var(--mark);color:#101A33}
+.glyph{flex:none;width:48px;height:48px;border-radius:12px;border:2px solid var(--ink);display:grid;place-items:center;
+  font-family:"JetBrains Mono",ui-monospace,monospace;font-weight:500;font-size:15px;transition:background .15s}
+.tname{font-weight:600;font-size:20px;letter-spacing:-.01em}
+.tdesc{color:var(--soft);font-size:15px}
+.best{margin-left:auto;text-align:right;font-size:14px;color:var(--soft);white-space:nowrap}
+.best b{display:block;font-size:18px;color:var(--ink)}
+
+/* quiz */
+.meta{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;font-size:15px;color:var(--soft)}
+.strip{display:flex;gap:6px;flex-wrap:wrap}
+.strip i{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.strip i.cur{border-color:var(--ink)}
+.strip i.ok{background:var(--good);border-color:var(--good)}
+.strip i.no{background:var(--bad);border-color:var(--bad)}
+.timer{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:20px}
+.timer span{display:block;height:100%;width:100%;background:var(--blue)}
+.timer.low span{background:var(--bad)}
+.fb{margin-top:18px;padding:16px 18px;border-radius:12px;background:var(--tint);border-left:6px solid var(--ink)}
+.fb.ok{border-color:var(--good)} .fb.no{border-color:var(--bad)}
+.fb strong{display:block;margin-bottom:2px}
+.fb p{color:var(--soft);font-size:16px}
+.fb + .row{margin-top:20px}
+
+/* results */
+.score{font-size:clamp(72px,16vw,128px);line-height:.9;font-weight:800;letter-spacing:-.05em;margin:6px 0 10px}
+.score small{font-size:.4em;color:var(--soft);letter-spacing:-.02em;font-weight:600}
+.mark{background:linear-gradient(transparent 55%,var(--mark) 55%);color:var(--ink);padding:0 2px}
+.review{margin-top:32px}
+.ritem{padding:16px 0;border-top:1.5px dashed var(--line)}
+.ritem .rq{font-weight:600;margin-bottom:6px}
+.ritem .ra{font-size:15px;color:var(--soft)}
+.ritem .ra b{color:var(--ink)}
+.tag{display:inline-block;font-size:13px;font-weight:600;border-radius:999px;padding:2px 10px;margin-right:8px;color:#fff}
+.tag.ok{background:var(--good)} .tag.no{background:var(--bad)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.foot{margin-top:40px;color:var(--soft);font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- two-module additions ---- */
+.hdr{display:flex;gap:8px;align-items:center}
+.theme[hidden]{display:none}
+.pagetitle{font-size:clamp(32px,6vw,48px);line-height:1.02;letter-spacing:-.035em;font-weight:800;margin:0 0 6px}
+.sub{color:var(--soft);margin-bottom:22px;max-width:52ch}
+.inp{width:100%;font:inherit;color:var(--ink);background:var(--sheet);border:1.5px solid var(--ink);border-radius:10px;padding:10px 12px;min-height:46px}
+textarea.inp{resize:vertical;min-height:72px;line-height:1.4}
+.inp::placeholder{color:var(--soft)}
+label.fl{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
+.field{margin-bottom:16px}
+.namebox{max-width:340px;margin-bottom:22px}
+.tabs{margin:0 0 16px}
+.tabs.seg button{padding:9px 18px;min-height:44px}
+.sm{background:transparent;border:1.5px solid var(--ink);border-radius:999px;padding:7px 14px;font-size:14px;font-weight:600;min-height:40px}
+.sm:hover{background:var(--tint)}
+.sm.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.sm.primary{background:var(--ink);color:var(--paper)}
+.qrow{padding:16px 6px;border-bottom:1.5px dashed var(--line)}
+.qrow:last-child{border-bottom:0}
+.qhead{display:flex;flex-wrap:wrap;gap:12px 20px;justify-content:space-between;align-items:center}
+.acts{display:flex;flex-wrap:wrap;gap:8px}
+.tag.mut{background:var(--soft)}
+.detail{margin-top:14px;padding:14px 16px;background:var(--tint);border-radius:12px}
+.detail h3{font-size:16px;margin:0 0 10px}
+.qr{display:grid;grid-template-columns:1fr 110px 44px;gap:12px;align-items:center;padding:6px 0;font-size:15px}
+.qr .qt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.qr b{text-align:right}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good)}
+.bar.low i{background:var(--bad)}
+.bar.mid i{background:#E8A400}
+@media (max-width:560px){.qr{grid-template-columns:1fr 70px 40px}}
+.srow{display:block;width:100%;text-align:left;background:none;border:0;padding:6px 0}
+.srow:hover .tname{text-decoration:underline}
+.att{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:15px;border-top:1px dashed var(--line)}
+.att:first-of-type{border-top:0}
+.qb{border:1.5px dashed var(--ink);border-radius:14px;padding:16px;margin:0 0 16px;background:var(--sheet)}
+.qb h3{margin:0 0 10px;font-size:17px}
+.orow{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.orow input[type=radio]{width:22px;height:22px;accent-color:var(--good);flex:none}
+.orow .letter{font-weight:600;width:18px;flex:none}
+.hint{color:var(--soft);font-size:14px}
+.err{color:var(--bad);font-weight:600;min-height:1.5em;margin:10px 0 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px}
+.note{margin-top:14px;padding:12px 14px;border-left:6px solid var(--bad);background:var(--tint);border-radius:10px;font-size:15px}
+.empty{padding:24px 6px;color:var(--soft)}
+.opt.locked{opacity:.6}
+.opt .tdesc{display:block}
+.chk{display:flex;gap:10px;align-items:center;min-height:44px}
+.chk input{width:22px;height:22px;accent-color:var(--blue)}
+.overview{font-size:19px;margin:0 0 20px;max-width:56ch}
+
+/* ---- sign in / create account ---- */
+.authwrap{max-width:560px}
+.opt.sel .bub{background:var(--ink);color:var(--paper)}
+.opt.sel{background:var(--tint)}
+.authbox h2{margin-bottom:2px}
+.glink{margin-top:18px}
+.acct{display:flex;align-items:center;gap:8px;border-bottom:1.5px dashed var(--line)}
+.acct:last-of-type{border-bottom:0}
+.acct .topic{flex:1;min-width:0;border-bottom:0}
+.acct .acts{flex:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <button class="brand" data-act="brand" aria-label="Tech Quiz home">
+      <span class="dots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i></span>
+      Tech Quiz
+    </button>
+    <div class="hdr">
+      <button class="theme" id="roleBtn" data-act="switch" hidden>Switch view</button>
+      <button class="theme" id="outBtn" data-act="signout" hidden>Switch account</button>
+      <button class="theme" id="themeBtn" aria-label="Switch colour theme">Theme</button>
+    </div>
+  </header>
+  <main id="app"></main>
+</div>
+<script>
+/* ---------- question bank ---------- */
+const CATS = [
+ {id:"js", glyph:"JS", name:"JavaScript", blurb:"Types, promises, closures and quirks", qs:[
+  {q:"What does `typeof null` return?", o:['"null"','"object"','"undefined"','"number"'], a:1, e:"A long-standing quirk: null was tagged as an object in the first JavaScript engine, and fixing it would break existing code."},
+  {q:"What is the result of `[] + []`?", o:["An empty string","`0`","`[]`","`undefined`"], a:0, e:"Both arrays convert to empty strings, and joining two empty strings gives an empty string."},
+  {q:"Which statement about `const` is true?", o:["The variable can never be rebound","The value is deeply frozen","It is function-scoped","It starts as `undefined`"], a:0, e:"const stops you reassigning the name. An object or array it points to can still be changed."},
+  {q:"What is the result of `0.1 + 0.2 === 0.3`?", o:["`true`","`false`","`NaN`","It throws an error"], a:1, e:"Floating-point numbers can't store 0.1 and 0.2 exactly, so the sum is 0.30000000000000004."},
+  {q:"`Promise.all` rejects when…", o:["All promises reject","Any one promise rejects","The first promise resolves","It never rejects"], a:1, e:"It fails fast on the first rejection. Use `Promise.allSettled` to wait for every result."},
+  {q:"In `setTimeout(a, 0); Promise.resolve().then(b);` which callback runs first?", o:["`a`, the timeout","`b`, the promise callback","They run at the same time","It depends on the browser"], a:1, e:"Promise callbacks are microtasks, which run before the next timer task."},
+  {q:"What does `[1, 2, 3].map(x => x * 2)` return?", o:["`[2, 4, 6]`","`6`","The same array, changed in place","`undefined`"], a:0, e:"map returns a new array and leaves the original untouched."},
+  {q:"What is a closure?", o:["A function that keeps access to variables from where it was created","A function with no parameters","A way to close a browser tab","A block that prevents errors"], a:0, e:"Closures let a function remember its outer scope, even after that outer function has returned."}
+ ]},
+ {id:"py", glyph:"PY", name:"Python", blurb:"Data types, gotchas and the standard library", qs:[
+  {q:"Which of these types is immutable?", o:["`list`","`dict`","`tuple`","`set`"], a:2, e:"Tuples can't be changed after creation. Lists, dicts and sets can."},
+  {q:"What does `len({1, 2, 2, 3})` return?", o:["`4`","`3`","`2`","It raises an error"], a:1, e:"A set stores unique values, so the duplicate 2 is dropped."},
+  {q:"What is `7 // 2` in Python 3?", o:["`3.5`","`4`","`3`","`3.0`"], a:2, e:"The // operator is floor division, so it rounds down to the integer 3."},
+  {q:"What is the problem with `def add(item, items=[])`?", o:["Nothing, a fresh list is made each call","The default list is created once and shared between calls","Lists can't be default values","It is a syntax error"], a:1, e:"Default values are evaluated once, when the function is defined. Use `None` and create the list inside."},
+  {q:"What does `[x * x for x in range(4)]` produce?", o:["`[0, 1, 4, 9]`","`[1, 4, 9, 16]`","`[0, 1, 2, 3]`","`[0, 2, 4, 6]`"], a:0, e:"range(4) yields 0 to 3, and each value is squared."},
+  {q:"Which keyword catches an exception?", o:["`catch`","`except`","`rescue`","`handle`"], a:1, e:"Python uses try / except, with optional else and finally blocks."},
+  {q:"What does `[1, 2, 3][-1]` return?", o:["`1`","`2`","`3`","An IndexError"], a:2, e:"Negative indexes count from the end, so -1 is the last item."},
+  {q:"In CPython, what does the GIL do?", o:["Lets only one thread run Python bytecode at a time","Encrypts the source code","Makes every thread run in parallel","Manages open files"], a:0, e:"The Global Interpreter Lock protects the interpreter's internals. For CPU-bound work, use multiprocessing."}
+ ]},
+ {id:"web", glyph:"</>", name:"HTML & CSS", blurb:"Markup, layout and the cascade", qs:[
+  {q:"Which element is meant for a block of navigation links?", o:["`<nav>`","`<menu-bar>`","`<links>`","`<section>`"], a:0, e:"`<nav>` is a semantic landmark that assistive technology can jump to."},
+  {q:"What does `box-sizing: border-box` change?", o:["Width and height include padding and border","It adds a border to every element","Margins stop collapsing","Overflowing content is hidden"], a:0, e:"With border-box, a 200px wide element stays 200px wide however much padding you add."},
+  {q:"Which selector has the highest specificity?", o:["`div`","`.nav`","`#header`","`*`"], a:2, e:"An ID selector outranks a class, which outranks an element type, which outranks the universal selector."},
+  {q:"A `rem` unit is relative to…", o:["The parent element's font size","The root element's font size","The viewport width","The element's own width"], a:1, e:"rem is based on the font size of the `<html>` element, which makes scaling predictable."},
+  {q:"What does `grid-template-columns: repeat(3, 1fr)` create?", o:["Three equal-width columns","Three rows of equal height","A three-pixel gap","Three nested grids"], a:0, e:"Each `1fr` takes one equal share of the available space."},
+  {q:"What is the `alt` attribute on an `<img>` for?", o:["A text alternative for screen readers and failed loads","Setting the tooltip colour","Aligning the image","Lazy-loading the image"], a:0, e:"Good alt text describes the purpose of the image. Decorative images use an empty `alt=\"\"`."},
+  {q:"`z-index` has an effect on…", o:["Positioned elements, and flex or grid items","Every element","Only fixed elements","Only inline text"], a:0, e:"Static, non-flex, non-grid elements ignore z-index."},
+  {q:"Which CSS makes an element a flex container?", o:["`display: flex`","`flex: container`","`position: flex`","`layout: flex`"], a:0, e:"`display: flex` turns the element into a flex container and its children into flex items."}
+ ]},
+ {id:"git", glyph:"git", name:"Git", blurb:"Branches, history and undoing mistakes", qs:[
+  {q:"Which command stages a file for the next commit?", o:["`git add`","`git push`","`git stage-commit`","`git fetch`"], a:0, e:"`git add` moves changes into the staging area."},
+  {q:"What does `git clone` do?", o:["Copies a remote repository and its history to your machine","Duplicates the current branch","Creates an empty repository","Uploads your commits"], a:0, e:"Clone downloads the full history and sets up the remote named origin."},
+  {q:"Which command combines another branch into your current one?", o:["`git merge`","`git join`","`git fork`","`git pull-request`"], a:0, e:"`git merge <branch>` brings that branch's commits into the one you're on."},
+  {q:"What does `git stash` do?", o:["Temporarily shelves uncommitted changes","Deletes untracked files","Pushes to a backup remote","Squashes commits"], a:0, e:"Stash saves your work in progress so you can switch tasks, then `git stash pop` brings it back."},
+  {q:"What does `git rebase main` do on a feature branch?", o:["Replays your commits on top of main","Deletes the main branch","Merges main with a merge commit","Creates a new remote"], a:0, e:"Rebasing rewrites your branch's commits so they start from the tip of main."},
+  {q:"What is `HEAD`?", o:["A pointer to the commit you have checked out","The very first commit","The remote's default branch","A configuration file"], a:0, e:"HEAD usually points at your current branch, which points at its latest commit."},
+  {q:"Which command undoes the last commit but keeps its changes staged?", o:["`git reset --soft HEAD~1`","`git reset --hard HEAD~1`","`git revert --hard`","`git clean -f`"], a:0, e:"--soft moves the branch back but keeps your changes staged. --hard discards them."},
+  {q:"What is a `.gitignore` file for?", o:["Listing files Git should not track","Hiding commits from history","Storing passwords safely","Skipping merge conflicts"], a:0, e:"Patterns in .gitignore keep build output, secrets and local files out of the repository."}
+ ]},
+ {id:"net", glyph:"://", name:"Networking & the web", blurb:"HTTP, DNS, TLS and how requests travel", qs:[
+  {q:"What does HTTP status 404 mean?", o:["Not Found","Forbidden","Server Error","Moved Permanently"], a:0, e:"The server can't find the requested resource."},
+  {q:"What is the default port for HTTPS?", o:["`80`","`443`","`8080`","`22`"], a:1, e:"HTTP uses 80 by default, HTTPS uses 443."},
+  {q:"What does DNS do?", o:["Translates domain names into IP addresses","Encrypts web traffic","Assigns IP addresses to devices","Caches images"], a:0, e:"DNS is the internet's phone book: you give it a name, it gives you an address."},
+  {q:"What does HTTP status 301 mean?", o:["Moved permanently","Temporary redirect","Unauthorized","Server error"], a:0, e:"A 301 tells clients and search engines the resource has a new permanent URL."},
+  {q:"What does TCP guarantee that UDP does not?", o:["Reliable, ordered delivery","Lower latency","Encryption","Broadcast support"], a:0, e:"TCP retransmits lost packets and orders them. UDP trades that for speed."},
+  {q:"Which HTTP method is meant to replace a resource and is idempotent?", o:["`PUT`","`POST`","`CONNECT`","`TRACE`"], a:0, e:"Sending the same PUT request repeatedly leaves the server in the same state."},
+  {q:"Who enforces CORS rules?", o:["The browser","The DNS server","The TCP stack","The CDN only"], a:0, e:"Servers send CORS headers, but it's the browser that blocks cross-origin reads that aren't allowed."},
+  {q:"What does TLS provide?", o:["Encryption and authentication of a connection","Faster routing","Domain registration","IP address assignment"], a:0, e:"TLS keeps data private in transit and lets you verify the server's identity."}
+ ]},
+ {id:"sql", glyph:"SQL", name:"Databases", blurb:"Queries, joins, indexes and transactions", qs:[
+  {q:"Which SQL clause filters rows before grouping?", o:["`WHERE`","`HAVING`","`LIMIT`","`ORDER BY`"], a:0, e:"WHERE filters individual rows. HAVING filters groups afterwards."},
+  {q:"What is a primary key?", o:["A column that uniquely identifies each row","The first column in a table","A password for the database","An index on every column"], a:0, e:"A primary key must be unique and not null."},
+  {q:"What does an `INNER JOIN` return?", o:["Rows with matches in both tables","All rows from the left table","All rows from both tables","Rows with no matches"], a:0, e:"Rows without a match on either side are left out. A LEFT JOIN would keep unmatched left rows."},
+  {q:"In ACID, what does the I stand for?", o:["Isolation","Integrity","Indexing","Idempotency"], a:0, e:"Isolation means concurrent transactions don't see each other's half-finished work."},
+  {q:"What is a database index mainly for?", o:["Speeding up lookups, at some cost to writes and storage","Encrypting a column","Backing up data","Enforcing foreign keys"], a:0, e:"Indexes let the database find rows without scanning the whole table, but each write must update them."},
+  {q:"`GROUP BY` is most often paired with…", o:["Aggregate functions such as `COUNT`","`DROP TABLE`","`INSERT`","`CREATE INDEX`"], a:0, e:"For example, `SELECT country, COUNT(*) FROM users GROUP BY country`."},
+  {q:"How does `HAVING` differ from `WHERE`?", o:["It filters groups after aggregation","It filters rows before aggregation","It sorts results","It joins tables"], a:0, e:"Use HAVING for conditions on aggregates, like `HAVING COUNT(*) > 5`."},
+  {q:"Which of these is a document database?", o:["MongoDB","PostgreSQL","SQLite","MySQL"], a:0, e:"MongoDB stores JSON-like documents. The others are relational."}
+ ]}
+];
+const ALL = CATS.flatMap(c => c.qs);
+const MIXED = {id:"mixed", glyph:"?!", name:"Mixed bag", blurb:"Random questions from every topic"};
+const SECONDS = 20;
+const LETTERS = ["A","B","C","D"];
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const lsGet = (k,d) => { try { const v = localStorage.getItem(k); return v===null ? d : v; } catch(e){ return d; } };
+const lsSet = (k,v) => { try { localStorage.setItem(k,v); } catch(e){} };
+const fdate = t => t ? new Date(t).toLocaleDateString(undefined,{day:"numeric",month:"short"}) : "";
+const pct = (s,n) => n ? Math.round(s/n*100) : 0;
+const plural = (n,w) => n + " " + w + (n===1?"":"s");
+const app = $("#app");
+
+/* ---------- state ---------- */
+const X = { db:null, user:null, dl:null, uid:null, canEdit:false, ready:false, profileName:"",
+  name: lsGet("tq-name",""), role:null, route:"auth", quizzes:[], results:[], mine:null, subs:[],
+  sTab:"assigned", tTab:"quizzes", openQ:null, openS:null, confirmDel:null, dbErr:"",
+  accounts:[], acc:null, confirmAcc:null, signedIn:false, guest:false, authTab:"in", authErr:"", draft:{name:"",cls:"",role:"student"} };
+let S = { count:8, timed:true, topic:null, qs:[], i:0, log:[], locked:false, timer:null, deadline:0, secs:SECONDS };
+let E = null; // quiz being edited
+
+/* practice best scores stay on this device */
+function loadBest(){ try { return JSON.parse(localStorage.getItem("techquiz-best")||"{}"); } catch(e){ return {}; } }
+function saveBest(id, score, total){
+  try {
+    const b = loadBest(), old = b[id];
+    if (!old || score/total > old.score/old.total) { b[id] = {score,total}; localStorage.setItem("techquiz-best", JSON.stringify(b)); return true; }
+  } catch(e){}
+  return false;
+}
+
+/* ---------- routing ---------- */
+function go(route){ X.route = route; render(); window.scrollTo(0,0); }
+function render(){
+  clearInterval(S.timer);
+  ({ auth:authScreen, sHome:studentHome, tHome:teacherHome, tEdit:editorScreen, quiz:question, results:results }[X.route] || authScreen)();
+  setHeader();
+}
+function refresh(){
+  if (X.route!=="sHome" && X.route!=="tHome") return;
+  const a = document.activeElement;
+  if (a && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return;
+  render();
+}
+function setHeader(){
+  $("#outBtn").hidden = !X.signedIn;
+  const canSwitch = X.signedIn && !X.guest && X.acc && X.acc.role==="teacher" && X.canEdit && X.db;
+  const b = $("#roleBtn");
+  b.hidden = !canSwitch;
+  if (canSwitch) b.textContent = X.role==="teacher" ? "Student view" : "Teacher view";
+}
+
+/* ---------- data ---------- */
+function unsubAll(){ X.subs.forEach(u=>{ try{u();}catch(e){} }); X.subs = []; }
+function subscribe(role){
+  unsubAll();
+  if (!X.db) return;
+  const onErr = e => { X.dbErr = (e && e.code) || "unavailable"; refresh(); };
+  X.subs.push(X.db.collection("quizzes").onSnapshot(snap=>{
+    X.quizzes = snap.docs.map(d=>({id:d.id, ...d.data()})).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+    refresh();
+  }, onErr));
+  if (role==="student" && X.uid){
+    X.subs.push(X.db.doc("results/"+X.uid).onSnapshot(snap=>{ X.mine = snap.exists ? snap.data() : null; refresh(); }, onErr));
+  }
+  if (role==="teacher"){
+    X.subs.push(X.db.collection("results").onSnapshot(snap=>{
+      X.results = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      refresh();
+    }, onErr));
+  }
+}
+function enter(role){
+  X.role = role; lsSet("tq-role", role);
+  if (role==="student" && !X.name && X.profileName) X.name = X.profileName;
+  subscribe(role);
+  go(role==="teacher" ? "tHome" : "sHome");
+}
+/* A login can hold many accounts: results/<login id> stores { accounts: { <accountId>: {name, cls, attempts} } } */
+function normAccounts(doc){
+  const a = {...(doc.accounts||{})};
+  if (doc.attempts && !a.profile) a.profile = { name:doc.name||"", cls:doc.cls||"", attempts:doc.attempts };
+  return a;
+}
+const accEntries = doc => { const a = normAccounts(doc); return Object.keys(a).map(k=>({key:k, ...a[k]})); };
+const students = () => X.results.flatMap(r => accEntries(r).map(e => ({ id:r.id+":"+e.key, name:e.name, cls:e.cls, attempts:e.attempts||[] })));
+function myAttempts(){
+  if (!X.mine) return [];
+  const key = X.acc ? X.acc.id : "guest";
+  const e = accEntries(X.mine).find(x=>x.key===key);
+  return e ? (e.attempts||[]) : [];
+}
+const attemptsFor = id => students().flatMap(r => r.attempts.filter(a=>a.q===id).map(a=>({...a, sid:r.id, name:r.name})));
+const avgPct = list => list.length ? Math.round(list.reduce((s,a)=>s+a.s/a.n,0)/list.length*100) : null;
+
+let saveChain = Promise.resolve();
+function saveAttempt(att){
+  if (!X.db || !X.uid) return Promise.reject({code:"unavailable"});
+  saveChain = saveChain.then(async () => {
+    const ref = X.db.doc("results/"+X.uid);
+    const snap = await ref.get();
+    const accs = normAccounts(snap.exists ? snap.data() : {});
+    const key = X.acc ? X.acc.id : "guest";
+    const prev = accs[key] || {};
+    accs[key] = { name: X.acc ? X.acc.name : X.name, cls: X.acc ? (X.acc.cls||"") : "", attempts:[...(prev.attempts||[]), att].slice(-40) };
+    await ref.set({ accounts: accs, updated: Date.now() });
+  });
+  const p = saveChain;
+  saveChain = saveChain.catch(()=>{});
+  return p;
+}
+
+/* ---------- sign in / create account (many accounts per login) ---------- */
+const accPath = id => "data/users/" + X.uid + "/" + id;
+async function loadAccounts(){
+  X.accounts = [];
+  if (!X.db || !X.uid) return;
+  try {
+    const snap = await X.db.collection("data/users/"+X.uid).get();
+    X.accounts = snap.docs.map(d=>({id:d.id, ...d.data()})).filter(a=>a.name && a.role).sort((a,b)=>(a.created||0)-(b.created||0));
+  } catch(e){}
+}
+function authScreen(){
+  X.route = "auth";
+  const tab = X.authTab, D = X.draft;
+  const tLocked = X.ready && (!X.db || !X.canEdit);
+  const unavailable = `<h2>Sign-in isn't available here</h2><p class="hint" style="margin-top:6px">Open this page from its claude.ai link to sign in. You can still continue as a guest to practise.</p>`;
+  let box = "";
+  if (!X.ready) box = `<p class="empty" role="status">Checking your accounts…</p>`;
+  else if (!X.uid) box = unavailable;
+  else if (tab==="in"){
+    if (X.accounts.length) box = `<h2>Choose an account</h2>
+      <p class="hint" style="margin:4px 0 8px">Pick who is using the quiz now.</p>
+      ${X.accounts.map(a=>`
+      <div class="acct">
+        <button class="topic" data-pick="${esc(a.id)}">
+          <span class="glyph" aria-hidden="true">${esc((a.name||"?").trim().charAt(0).toUpperCase())}</span>
+          <span><span class="tname">${esc(a.name)}</span><br><span class="tdesc">${a.role==="teacher"?"Teacher":"Student"}${a.cls?", "+esc(a.cls):""}</span></span>
+        </button>
+        <span class="acts">${X.confirmAcc===a.id
+          ? `<button class="sm danger" data-act="delAcc2" data-id="${esc(a.id)}">Confirm remove</button><button class="sm" data-act="delAccCancel">Cancel</button>`
+          : `<button class="sm" data-act="delAcc" data-id="${esc(a.id)}" aria-label="Remove account ${esc(a.name)}">Remove</button>`}</span>
+      </div>`).join("")}
+      <div class="row" style="margin-top:16px"><button class="btn" data-authtab="up">Create another account</button></div>`;
+    else box = `<h2>No account yet</h2>
+      <p class="hint" style="margin:4px 0 18px">There are no accounts on this login yet. It takes a few seconds to create one.</p>
+      <button class="btn" data-authtab="up">Create account</button>`;
+  } else {
+    box = `<h2>Create ${X.accounts.length?"a new":"your"} account</h2>
+      <p class="hint" style="margin-top:4px">You can create as many accounts as you need, for example one for each student or teacher using this login.</p>
+      <div class="field" style="margin-top:14px"><label class="fl" for="su-name">Full name</label>
+        <input class="inp" id="su-name" value="${esc(D.name)}" autocomplete="off" maxlength="60"></div>
+      <p class="fl">Account type</p>
+      <div role="group" aria-label="Account type">
+        <button class="opt ${D.role==="student"?"sel":""}" data-arole="student" aria-pressed="${D.role==="student"}">
+          <span class="bub">A</span><span class="lbl"><b>Student</b><span class="tdesc">Take quizzes and track scores.</span></span></button>
+        <button class="opt ${D.role==="teacher"?"sel":""} ${tLocked?"locked":""}" data-arole="teacher" aria-pressed="${D.role==="teacher"}">
+          <span class="bub">B</span><span class="lbl"><b>Teacher</b><span class="tdesc">Create quizzes and review class results.</span></span></button>
+      </div>
+      ${D.role==="student"?`<div class="field" style="margin-top:14px"><label class="fl" for="su-cls">Class or roll number (optional)</label>
+        <input class="inp" id="su-cls" value="${esc(D.cls)}" maxlength="40"></div>`:""}
+      <p id="autherr" class="err" role="alert">${esc(X.authErr)}</p>
+      <div class="row"><button class="btn" data-act="signup">Create account</button>
+      ${X.accounts.length?`<button class="btn ghost" data-authtab="in">Back to accounts</button>`:""}</div>`;
+  }
+  app.innerHTML = `
+  <div class="authwrap">
+    <h1 class="pagetitle">Welcome to Tech Quiz.</h1>
+    <p class="sub">Sign in to see your quizzes and results, or create an account in a few seconds.</p>
+    <div class="seg tabs" role="group" aria-label="Sign in or create account">
+      <button data-authtab="in" aria-pressed="${tab==="in"}">Sign in</button>
+      <button data-authtab="up" aria-pressed="${tab==="up"}">Create account</button>
+    </div>
+    <div class="sheet authbox">${box}</div>
+    <p class="hint" style="margin-top:14px">Your identity comes from your claude.ai account, so there's no password to remember or share.</p>
+    <div class="glink"><button class="sm" data-act="guest">Continue as guest (practice only)</button></div>
+  </div>`;
+}
+function signIn(id){
+  const a = X.accounts.find(x=>x.id===id); if (!a) return;
+  X.acc = a; X.signedIn = true; X.guest = false; lsSet("tq-acc", id);
+  X.name = a.name; lsSet("tq-name", a.name);
+  enter(a.role==="teacher" && X.canEdit && X.db ? "teacher" : "student");
+}
+async function signUp(){
+  const D = X.draft, name = D.name.trim();
+  const err = m => { X.authErr = m; const el = $("#autherr"); if (el) el.textContent = m; };
+  err("");
+  if (!name) return err("Enter a name for the account.");
+  if (D.role==="teacher" && (!X.db || !X.canEdit)) return err("Only the owner or editors of this page can create a teacher account.");
+  if (!X.db || !X.uid) return err("Accounts need the shared version of this page.");
+  const id = "a_" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+  const acc = { name, role:D.role, cls: D.role==="student" ? D.cls.trim() : "", created:Date.now() };
+  const btn = document.querySelector('[data-act="signup"]'); if (btn) btn.disabled = true;
+  try {
+    await X.db.doc(accPath(id)).set(acc);
+    X.accounts.push({ id, ...acc });
+    X.draft = { name:"", cls:"", role:"student" }; X.authErr = "";
+    signIn(id);
+  } catch(e){
+    if (btn) btn.disabled = false;
+    err("Couldn't create the account (" + ((e&&e.code)||"error") + "). Ask the owner to give you Contributor access.");
+  }
+}
+async function removeAccount(id){
+  X.confirmAcc = null;
+  try {
+    await X.db.doc(accPath(id)).delete();
+    const ref = X.db.doc("results/"+X.uid), snap = await ref.get();
+    if (snap.exists){
+      const accs = normAccounts(snap.data()); delete accs[id];
+      await ref.set({ accounts: accs, updated: Date.now() });
+    }
+  } catch(e){}
+  if (lsGet("tq-acc","")===id) lsSet("tq-acc","");
+  await loadAccounts();
+  if (!X.accounts.length) X.authTab = "up";
+  render();
+}
+function guestIn(){
+  X.signedIn = true; X.guest = true; X.acc = null; lsSet("tq-acc","");
+  enter("student");
+}
+function signOut(){
+  unsubAll(); X.signedIn = false; X.guest = false; X.acc = null; X.role = null; X.mine = null;
+  X.openQ = X.openS = X.confirmDel = X.confirmAcc = null;
+  lsSet("tq-acc",""); lsSet("tq-role","");
+  X.authTab = X.accounts.length ? "in" : "up"; X.authErr = "";
+  go("auth");
+}
+
+/* ---------- student module ---------- */
+function studentHome(){
+  const assigned = X.quizzes.filter(q => q.open !== false);
+  const my = myAttempts();
+  const tab = X.sTab;
+  let body = "";
+
+  if (tab==="assigned"){
+    if (!X.db) body = `<p class="empty">Quizzes from your teacher need the shared version of this page. You can still use Practice.</p>`;
+    else if (X.dbErr) body = `<p class="empty">Couldn't load quizzes (${esc(X.dbErr)}). Check that you're signed in and try again.</p>`;
+    else if (!assigned.length) body = `<p class="empty">No quizzes yet. When your teacher publishes one, it shows up here.</p>`;
+    else body = assigned.map(q=>{
+      const mine = my.filter(a=>a.q===q.id);
+      const best = mine.length ? Math.max(...mine.map(a=>pct(a.s,a.n))) : null;
+      return `<button class="topic" data-aq="${esc(q.id)}">
+        <span class="glyph" aria-hidden="true">${q.questions.length}Q</span>
+        <span><span class="tname">${esc(q.title)}</span><br><span class="tdesc">${esc(q.desc||"")}${q.desc?" ":""}${q.secs>0?q.secs+"s per question":"No timer"}</span></span>
+        <span class="best">${best===null?"New":`<b>${best}%</b>best`}</span>
+      </button>`;}).join("");
+  }
+  if (tab==="practice"){
+    const best = loadBest();
+    body = `
+    <div class="settings" style="margin-top:0">
+      <div class="set">Questions
+        <span class="seg" role="group" aria-label="Number of questions">
+          ${[5,8].map(n=>`<button data-count="${n}" aria-pressed="${S.count===n}">${n}</button>`).join("")}
+        </span>
+      </div>
+      <div class="set">Timer
+        <span class="seg" role="group" aria-label="Timer">
+          <button data-timed="1" aria-pressed="${S.timed}">${SECONDS}s each</button>
+          <button data-timed="0" aria-pressed="${!S.timed}">Off</button>
+        </span>
+      </div>
+    </div>
+    ${[...CATS, MIXED].map(t=>{
+      const b = best[t.id];
+      return `<button class="topic" data-topic="${t.id}">
+        <span class="glyph" aria-hidden="true">${esc(t.glyph)}</span>
+        <span><span class="tname">${esc(t.name)}</span><br><span class="tdesc">${esc(t.blurb)}</span></span>
+        <span class="best">${b?`<b>${b.score}/${b.total}</b>best`:"Not played"}</span>
+      </button>`;}).join("")}`;
+  }
+  if (tab==="progress"){
+    if (!my.length) body = `<p class="empty">You haven't taken a teacher quiz yet. Your scores appear here after your first one.</p>`;
+    else {
+      const avg = Math.round(my.reduce((s,a)=>s+a.s/a.n,0)/my.length*100);
+      body = `<p class="overview" style="margin-top:0">You've made ${plural(my.length,"attempt")} with an average of ${avg}%.</p>` +
+        my.slice().reverse().map(a=>`<div class="att"><span><b>${esc(a.t)}</b></span><span>${a.s}/${a.n} (${pct(a.s,a.n)}%), ${fdate(a.at)}</span></div>`).join("");
+    }
+  }
+
+  app.innerHTML = `
+  <h1 class="pagetitle">Student module</h1>
+  <p class="sub">${X.acc?`Signed in as <b>${esc(X.acc.name)}</b>${X.acc.cls?" ("+esc(X.acc.cls)+")":""}. `:""}Take a quiz from your teacher or practise on a topic.</p>
+  ${X.acc?"":`<div class="namebox">
+    <label class="fl" for="nm">Your name</label>
+    <input class="inp" id="nm" value="${esc(X.name)}" placeholder="So your teacher can see your results" autocomplete="name" maxlength="60">
+  </div>`}
+  <div class="seg tabs" role="group" aria-label="Student sections">
+    <button data-stab="assigned" aria-pressed="${tab==="assigned"}">From my teacher</button>
+    <button data-stab="practice" aria-pressed="${tab==="practice"}">Practice</button>
+    <button data-stab="progress" aria-pressed="${tab==="progress"}">My progress</button>
+  </div>
+  <div class="sheet">${body}</div>`;
+}
+
+function prepare(q, qi){
+  const order = shuffle([0,1,2,3]);
+  return { qi, q:q.q, e:q.e||"", o:order.map(i=>q.o[i]), a:order.indexOf(q.a) };
+}
+function startPractice(id){
+  const pool = id==="mixed" ? ALL : CATS.find(c=>c.id===id).qs;
+  const qs = shuffle(pool).slice(0, Math.min(S.count, pool.length)).map(prepare);
+  S = {...S, topic: id==="mixed" ? MIXED : CATS.find(c=>c.id===id), qs, i:0, log:[], locked:false, secs:SECONDS};
+  S.timedNow = S.timed;
+  question();
+}
+function startAssigned(id){
+  const quiz = X.quizzes.find(q=>q.id===id); if (!quiz) return;
+  if (!X.name.trim()){
+    const nm = $("#nm"); if (nm){ nm.focus(); nm.placeholder = "Enter your name to start"; nm.style.borderColor = "var(--bad)"; }
+    return;
+  }
+  const qs = quiz.questions.map(prepare);
+  S = {...S, topic:{id:quiz.id, name:quiz.title, assigned:true}, qs, i:0, log:[], locked:false, secs:quiz.secs||0};
+  S.timedNow = S.secs > 0;
+  question();
+}
+
+/* ---------- quiz ---------- */
+function question(){
+  X.route = "quiz";
+  clearInterval(S.timer);
+  S.locked = false;
+  const q = S.qs[S.i];
+  app.innerHTML = `
+  <div class="sheet">
+    <div class="meta">
+      <span>${esc(S.topic.name)}: question ${S.i+1} of ${S.qs.length}</span>
+      <span class="strip" aria-hidden="true">${S.qs.map((_,k)=>{
+        const r = S.log[k]; return `<i class="${r?(r.ok?"ok":"no"):(k===S.i?"cur":"")}"></i>`; }).join("")}</span>
+    </div>
+    ${S.timedNow?`<div class="timer" id="timer" role="timer" aria-label="Time left"><span id="bar"></span></div>`:""}
+    <h2 class="q" id="qtext" tabindex="-1">${fmt(q.q)}</h2>
+    <div id="opts">
+      ${q.o.map((t,i)=>`<button class="opt" data-ans="${i}"><span class="bub">${LETTERS[i]}</span><span class="lbl">${fmt(t)}</span></button>`).join("")}
+    </div>
+    <div id="fb" aria-live="polite"></div>
+  </div>`;
+  setHeader();
+  $("#qtext").focus({preventScroll:true});
+  if (S.timedNow){
+    const ms = S.secs*1000;
+    S.deadline = Date.now() + ms;
+    S.timer = setInterval(()=>{
+      const left = S.deadline - Date.now();
+      const bar = $("#bar"); if(!bar){ clearInterval(S.timer); return; }
+      bar.style.width = Math.max(0,left/ms*100)+"%";
+      $("#timer").classList.toggle("low", left < 5000);
+      if (left <= 0) answer(-1);
+    }, 100);
+  }
+}
+
+function answer(i){
+  if (S.locked) return;
+  S.locked = true;
+  clearInterval(S.timer);
+  const q = S.qs[S.i], ok = i === q.a;
+  S.log[S.i] = { ok, picked:i };
+  document.querySelectorAll("#opts .opt").forEach((b,k)=>{
+    b.disabled = true;
+    const bub = b.querySelector(".bub");
+    if (k===q.a){ b.classList.add("right"); bub.textContent="✓"; }
+    else if (k===i){ b.classList.add("wrong"); bub.textContent="✕"; }
+    else b.classList.add("dim");
+  });
+  const last = S.i === S.qs.length-1;
+  const head = ok ? "Correct" : (i===-1 ? "Time's up" : "Not quite");
+  $("#fb").innerHTML = `
+    <div class="fb ${ok?"ok":"no"}"><strong>${head}</strong>${q.e?`<p>${fmt(q.e)}</p>`:""}</div>
+    <div class="row"><button class="btn" id="next" data-act="next">${last?"See results":"Next question"}</button></div>`;
+  $("#next").focus();
+  const strip = document.querySelectorAll(".strip i"); if (strip[S.i]) strip[S.i].className = ok?"ok":"no";
+}
+
+/* ---------- results ---------- */
+function results(){
+  X.route = "results";
+  clearInterval(S.timer);
+  const total = S.qs.length, score = S.log.filter(r=>r&&r.ok).length;
+  const assigned = !!S.topic.assigned;
+  let newBest = false;
+  if (!assigned) newBest = saveBest(S.topic.id, score, total);
+  const p = score/total;
+  const msg = p>=.9 ? "Excellent. You know this topic well."
+            : p>=.6 ? "Solid. A few gaps to review below."
+            : "Good start. Check the answers below, then go again.";
+  const missed = S.qs.map((q,k)=>({q,r:S.log[k],k})).filter(x=>!x.r||!x.r.ok);
+  app.innerHTML = `
+  <div class="sheet">
+    <p class="ra" style="color:var(--soft)">${esc(S.topic.name)}</p>
+    <div class="score"><span class="mark">${score}</span><small>/${total}</small></div>
+    <p class="lead" style="font-size:20px">${msg}${newBest&&score>0?" That's your best score here.":""}</p>
+    ${assigned?`<p id="saveMsg" class="hint" role="status" style="margin-top:8px">Saving your result…</p>`:""}
+    <div class="row" style="margin-top:22px">
+      <button class="btn" data-act="retry">${assigned?"Try again":"Play again"}</button>
+      <button class="btn ghost" data-act="backHome">${assigned?"Back to my quizzes":"Choose another topic"}</button>
+    </div>
+    <div class="review">
+      <h2>${missed.length?"Review what you missed":"No mistakes to review"}</h2>
+      ${missed.map(({q,r})=>`
+        <div class="ritem">
+          <p class="rq">${fmt(q.q)}</p>
+          <p class="ra"><span class="tag no">${r&&r.picked===-1?"Timed out":"Your answer"}</span>${r&&r.picked>=0?fmt(q.o[r.picked]):""}</p>
+          <p class="ra" style="margin-top:6px"><span class="tag ok">Correct</span><b>${fmt(q.o[q.a])}</b></p>
+          ${q.e?`<p class="ra" style="margin-top:6px">${fmt(q.e)}</p>`:""}
+        </div>`).join("")}
+    </div>
+  </div>`;
+  setHeader();
+  window.scrollTo({top:0});
+  if (assigned){
+    const ok = []; S.qs.forEach((q,k)=>{ ok[q.qi] = !!(S.log[k] && S.log[k].ok); });
+    saveAttempt({ q:S.topic.id, t:S.topic.name, s:score, n:total, at:Date.now(), ok })
+      .then(()=>{ const m=$("#saveMsg"); if(m) m.textContent = "Saved. Your teacher can see this result."; })
+      .catch(e=>{ const m=$("#saveMsg"); if(m) m.textContent = "This result could not be saved (" + ((e&&e.code)||"error") + "). Ask your teacher to give you Contributor access to this page."; });
+  }
+}
+
+/* ---------- teacher module ---------- */
+function teacherHome(){
+  const studs = students().filter(r => r.attempts.length);
+  const allAtt = studs.flatMap(r => r.attempts);
+  const overview = allAtt.length
+    ? `${plural(studs.length,"student")} ${studs.length===1?"has":"have"} made ${plural(allAtt.length,"attempt")}, averaging ${avgPct(allAtt)}%.`
+    : "No attempts yet. Share this page with your students once you've published a quiz.";
+  let body = "";
+
+  if (X.tTab==="quizzes"){
+    body = `<div class="row" style="justify-content:space-between;margin-bottom:6px">
+        <h2 style="margin:0">Your quizzes</h2>
+        <button class="btn" data-act="newQ">New quiz</button>
+      </div>` +
+      (X.dbErr ? `<p class="note">Couldn't load data (${esc(X.dbErr)}).</p>` : "") +
+      (X.quizzes.length ? X.quizzes.map(quizRow).join("") : `<p class="empty">You haven't made a quiz yet. Create one, add your questions or start from a topic bank, and students will see it right away.</p>`);
+  } else {
+    const rows = studs.slice().sort((a,b)=>(a.name||"").localeCompare(b.name||""));
+    body = `<div class="row" style="justify-content:space-between;margin-bottom:6px">
+        <h2 style="margin:0">Students</h2>
+        ${X.dl && rows.length ? `<button class="sm" data-act="csv">Download results (CSV)</button>` : ""}
+      </div>` +
+      (rows.length ? rows.map(studentRow).join("") : `<p class="empty">No student results yet.</p>`);
+  }
+
+  app.innerHTML = `
+  <h1 class="pagetitle">Teacher module</h1>
+  ${X.acc?`<p class="sub" style="margin-bottom:10px">Signed in as <b>${esc(X.acc.name)}</b>.</p>`:""}
+  <p class="overview">${overview}</p>
+  <div class="seg tabs" role="group" aria-label="Teacher sections">
+    <button data-ttab="quizzes" aria-pressed="${X.tTab==="quizzes"}">Quizzes</button>
+    <button data-ttab="students" aria-pressed="${X.tTab==="students"}">Students</button>
+  </div>
+  <div class="sheet">${body}</div>`;
+}
+
+function quizRow(q){
+  const atts = attemptsFor(q.id), hidden = q.open===false, open = X.openQ===q.id, id = esc(q.id);
+  let detail = "";
+  if (open){
+    detail = `<div class="detail">` + (atts.length ? `<h3>Share of students who answered each question correctly</h3>` +
+      q.questions.map((qq,i)=>{
+        const have = atts.filter(a=>a.ok && a.ok.length>i);
+        const r = have.length ? Math.round(have.filter(a=>a.ok[i]).length/have.length*100) : 0;
+        return `<div class="qr"><span class="qt" title="${esc(qq.q)}">${i+1}. ${fmt(qq.q)}</span><span class="bar ${r<40?"low":r<70?"mid":""}"><i style="width:${r}%"></i></span><b>${r}%</b></div>`;
+      }).join("") : `<p class="hint">No attempts yet.</p>`) + `</div>`;
+  }
+  return `<div class="qrow">
+    <div class="qhead">
+      <div>
+        <span class="tname">${esc(q.title)}</span> <span class="tag ${hidden?"mut":"ok"}">${hidden?"Hidden":"Visible"}</span><br>
+        <span class="tdesc">${plural(q.questions.length,"question")}, ${q.secs>0?q.secs+"s each":"untimed"}. ${atts.length?`${plural(atts.length,"attempt")}, average ${avgPct(atts)}%.`:"No attempts yet."}</span>
+      </div>
+      <div class="acts">
+        <button class="sm" data-act="viewQ" data-id="${id}">${open?"Hide results":"Results"}</button>
+        <button class="sm" data-act="editQ" data-id="${id}">Edit</button>
+        <button class="sm" data-act="toggleQ" data-id="${id}">${hidden?"Show to students":"Hide"}</button>
+        ${X.confirmDel===q.id
+          ? `<button class="sm danger" data-act="delQ2" data-id="${id}">Confirm delete</button><button class="sm" data-act="delCancel">Cancel</button>`
+          : `<button class="sm" data-act="delQ" data-id="${id}">Delete</button>`}
+      </div>
+    </div>${detail}
+  </div>`;
+}
+
+function studentRow(r){
+  const at = r.attempts, avg = avgPct(at), last = at[at.length-1], open = X.openS===r.id;
+  return `<div class="qrow">
+    <button class="srow" data-act="viewS" data-id="${esc(r.id)}" aria-expanded="${open}">
+      <span class="tname">${esc(r.name||"Unnamed student")}</span>${r.cls?` <span class="tdesc">(${esc(r.cls)})</span>`:""}<br>
+      <span class="tdesc">${plural(at.length,"attempt")}, average ${avg}%. Latest: ${esc(last.t)}, ${last.s}/${last.n}, ${fdate(last.at)}.</span>
+    </button>
+    ${open ? `<div class="detail">${at.slice().reverse().map(a=>`<div class="att"><span>${esc(a.t)}</span><span>${a.s}/${a.n} (${pct(a.s,a.n)}%), ${fdate(a.at)}</span></div>`).join("")}</div>` : ""}
+  </div>`;
+}
+
+const blankQ = () => ({ q:"", o:["","","",""], a:0, e:"" });
+function newQuiz(){ E = { id:null, title:"", desc:"", secs:0, open:true, qs:[blankQ()], createdAt:null }; go("tEdit"); }
+function editQuiz(id){
+  const q = X.quizzes.find(x=>x.id===id); if(!q) return;
+  E = { id:q.id, title:q.title, desc:q.desc||"", secs:q.secs||0, open:q.open!==false, createdAt:q.createdAt||null,
+        qs: JSON.parse(JSON.stringify(q.questions)).map(x=>({q:x.q,o:x.o,a:x.a,e:x.e||""})) };
+  go("tEdit");
+}
+
+function editorScreen(){
+  if (!E) { X.route="tHome"; return teacherHome(); }
+  app.innerHTML = `
+  <h1 class="pagetitle">${E.id?"Edit quiz":"New quiz"}</h1>
+  <p class="sub">Add a title, then your questions. Each question has four options and one correct answer. Wrap code in backticks to show it as <code>code</code>.</p>
+  <div class="sheet">
+    <div class="field"><label class="fl" for="qt">Title</label>
+      <input class="inp" id="qt" data-f="title" value="${esc(E.title)}" placeholder="For example: Week 3 JavaScript check" maxlength="80"></div>
+    <div class="field"><label class="fl" for="qd">Description (optional)</label>
+      <input class="inp" id="qd" data-f="desc" value="${esc(E.desc)}" placeholder="What this quiz covers" maxlength="140"></div>
+    <div class="row" style="gap:24px;margin-bottom:20px">
+      <div><label class="fl" for="qs">Time per question</label>
+        <select class="inp" id="qs" data-f="secs" style="min-width:150px">
+          ${[[0,"No timer"],[15,"15 seconds"],[20,"20 seconds"],[30,"30 seconds"],[60,"60 seconds"]].map(([v,l])=>`<option value="${v}" ${+E.secs===v?"selected":""}>${l}</option>`).join("")}
+        </select></div>
+      <label class="chk"><input type="checkbox" data-f="open" ${E.open?"checked":""}> Visible to students</label>
+    </div>
+    <h2>Questions</h2>
+    <div id="qlist">
+      ${E.qs.map((q,i)=>`
+      <div class="qb" id="qb${i}">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <h3>Question ${i+1}</h3>
+          ${E.qs.length>1?`<button class="sm" data-act="rmQ" data-i="${i}" aria-label="Remove question ${i+1}">Remove</button>`:""}
+        </div>
+        <div class="field"><label class="fl" for="q${i}">Question</label>
+          <textarea class="inp" id="q${i}" data-qi="${i}" data-k="q" maxlength="400">${esc(q.q)}</textarea></div>
+        <p class="hint" style="margin-bottom:8px">Fill in the options and select the correct one.</p>
+        ${q.o.map((o,k)=>`
+        <div class="orow">
+          <input type="radio" name="c${i}" data-qi="${i}" data-ra="${k}" ${q.a===k?"checked":""} aria-label="Option ${LETTERS[k]} is correct">
+          <span class="letter">${LETTERS[k]}</span>
+          <input class="inp" data-qi="${i}" data-oi="${k}" value="${esc(o)}" aria-label="Option ${LETTERS[k]}" maxlength="200">
+        </div>`).join("")}
+        <div class="field" style="margin-top:12px"><label class="fl" for="e${i}">Explanation (optional)</label>
+          <input class="inp" id="e${i}" data-qi="${i}" data-k="e" value="${esc(q.e)}" placeholder="Shown to students after they answer" maxlength="300"></div>
+      </div>`).join("")}
+    </div>
+    <div class="row"><button class="sm primary" data-act="addQ">Add question</button></div>
+    <p class="hint" style="margin-top:18px">Or add ready-made questions from a topic bank:</p>
+    <div class="chips">${CATS.map(c=>`<button class="sm" data-bank="${c.id}">${esc(c.name)}</button>`).join("")}</div>
+    <p id="err" class="err" role="alert"></p>
+    <div class="row" style="margin-top:6px">
+      <button class="btn" id="saveBtn" data-act="saveQ">Save quiz</button>
+      <button class="btn ghost" data-act="cancelEdit">Cancel</button>
+    </div>
+  </div>`;
+}
+
+async function saveQuiz(){
+  const err = m => { $("#err").textContent = m; };
+  err("");
+  const title = E.title.trim();
+  if (!title) return err("Add a title for the quiz.");
+  for (let i=0;i<E.qs.length;i++){
+    const q = E.qs[i];
+    if (!q.q.trim()) return err(`Question ${i+1} needs some text.`);
+    if (q.o.some(o=>!o.trim())) return err(`Question ${i+1} needs all four options filled in.`);
+  }
+  if (!X.db) return err("Saving needs the shared version of this page.");
+  const btn = $("#saveBtn"); btn.disabled = true;
+  try {
+    const ref = E.id ? X.db.doc("quizzes/"+E.id) : X.db.collection("quizzes").doc();
+    await ref.set({
+      title, desc:E.desc.trim(), secs:+E.secs||0, open:E.open!==false,
+      questions:E.qs.map(q=>({q:q.q.trim(), o:q.o.map(s=>s.trim()), a:q.a, e:q.e.trim()})),
+      createdAt:E.createdAt||Date.now(), updated:Date.now(), by:X.uid||""
+    });
+    E = null; X.tTab = "quizzes"; go("tHome");
+  } catch(e){
+    btn.disabled = false;
+    err("Couldn't save (" + ((e&&e.code)||"error") + "). Check that you're an editor of this page.");
+  }
+}
+
+async function exportCsv(){
+  const cell = v => { v = String(v==null?"":v); if (/^[=+\-@\t\r]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g,'""') + '"'; };
+  const rows = [["Student","Class","Quiz","Score","Out of","Percent","Date"]];
+  students().forEach(r => (r.attempts||[]).forEach(a => rows.push([r.name||"Unnamed", r.cls||"", a.t, a.s, a.n, pct(a.s,a.n), new Date(a.at).toISOString().slice(0,10)])));
+  try { await X.dl.save({ filename:"tech-quiz-results.csv", data: rows.map(r=>r.map(cell).join(",")).join("\n") }); } catch(e){}
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", e=>{
+  const t = e.target.closest("button"); if(!t) return;
+  const d = t.dataset;
+
+  if (d.authtab){ X.authTab = d.authtab; X.authErr = ""; return render(); }
+  if (d.arole){
+    if (d.arole==="teacher" && X.ready && (!X.db || !X.canEdit)){ X.authErr = "Only the owner or editors of this page can create a teacher account."; return render(); }
+    X.draft.role = d.arole; X.authErr = ""; return render();
+  }
+  if (d.pick){ signIn(d.pick); return; }
+  if (d.stab){ X.sTab = d.stab; return render(); }
+  if (d.ttab){ X.tTab = d.ttab; return render(); }
+  if (d.count){ S.count=+d.count; document.querySelectorAll("[data-count]").forEach(b=>b.setAttribute("aria-pressed",b===t)); return; }
+  if (d.timed!==undefined){ S.timed=d.timed==="1"; document.querySelectorAll("[data-timed]").forEach(b=>b.setAttribute("aria-pressed",b===t)); return; }
+  if (d.topic){ startPractice(d.topic); window.scrollTo(0,0); return; }
+  if (d.aq){ startAssigned(d.aq); window.scrollTo(0,0); return; }
+  if (d.ans!==undefined){ answer(+d.ans); return; }
+  if (d.bank && E){
+    const blank = E.qs.length===1 && !E.qs[0].q.trim() && E.qs[0].o.every(o=>!o.trim());
+    const add = CATS.find(c=>c.id===d.bank).qs.map(q=>({q:q.q, o:q.o.slice(), a:q.a, e:q.e}));
+    E.qs = blank ? add : E.qs.concat(add);
+    return render();
+  }
+
+  switch(d.act){
+    case "brand": X.signedIn && X.role ? go(X.role==="teacher"?"tHome":"sHome") : go("auth"); break;
+    case "switch": enter(X.role==="teacher" ? "student" : "teacher"); break;
+    case "signup": signUp(); break;
+    case "delAcc": X.confirmAcc = d.id; render(); break;
+    case "delAccCancel": X.confirmAcc = null; render(); break;
+    case "delAcc2": removeAccount(d.id); break;
+    case "guest": guestIn(); break;
+    case "signout": signOut(); break;
+    case "next": S.i++; if(S.i>=S.qs.length) results(); else question(); break;
+    case "retry": S.topic.assigned ? startAssigned(S.topic.id) : startPractice(S.topic.id); window.scrollTo(0,0); break;
+    case "backHome": X.sTab = S.topic.assigned ? "assigned" : "practice"; go("sHome"); break;
+    case "newQ": newQuiz(); break;
+    case "editQ": editQuiz(d.id); break;
+    case "viewQ": X.openQ = X.openQ===d.id ? null : d.id; render(); break;
+    case "viewS": X.openS = X.openS===d.id ? null : d.id; render(); break;
+    case "toggleQ": { const q = X.quizzes.find(x=>x.id===d.id); if(q && X.db) X.db.doc("quizzes/"+d.id).update({open: q.open===false}).catch(()=>{}); break; }
+    case "delQ": X.confirmDel = d.id; render(); break;
+    case "delCancel": X.confirmDel = null; render(); break;
+    case "delQ2": X.confirmDel = null; if (X.db) X.db.doc("quizzes/"+d.id).delete().catch(()=>{}); render(); break;
+    case "addQ": E.qs.push(blankQ()); render(); { const i=E.qs.length-1; const el=$("#q"+i); if(el){ el.focus(); } } break;
+    case "rmQ": E.qs.splice(+d.i,1); render(); break;
+    case "saveQ": saveQuiz(); break;
+    case "cancelEdit": E = null; go("tHome"); break;
+    case "csv": exportCsv(); break;
+  }
+});
+
+document.addEventListener("input", e=>{
+  const t = e.target;
+  if (t.id==="su-name"){ X.draft.name = t.value; return; }
+  if (t.id==="su-cls"){ X.draft.cls = t.value; return; }
+  if (t.id==="nm"){ X.name = t.value; lsSet("tq-name", t.value); t.style.borderColor=""; return; }
+  if (X.route!=="tEdit" || !E || t.type==="checkbox" || t.type==="radio") return;
+  const d = t.dataset;
+  if (d.f) E[d.f] = t.value;
+  else if (d.k) E.qs[+d.qi][d.k] = t.value;
+  else if (d.oi!==undefined) E.qs[+d.qi].o[+d.oi] = t.value;
+});
+document.addEventListener("change", e=>{
+  const t = e.target, d = t.dataset;
+  if (X.route!=="tEdit" || !E) return;
+  if (d.ra!==undefined) E.qs[+d.qi].a = +d.ra;
+  if (d.f==="open") E.open = t.checked;
+  if (d.f==="secs") E.secs = +t.value;
+});
+
+document.addEventListener("keydown", e=>{
+  if (X.route!=="quiz" || !$("#opts") || S.locked || e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key.toLowerCase();
+  const idx = "abcd".indexOf(k) >= 0 ? "abcd".indexOf(k) : "1234".indexOf(k);
+  if (idx >= 0) answer(idx);
+});
+
+/* theme toggle */
+(function(){
+  const root = document.documentElement;
+  const dark = () => root.dataset.theme ? root.dataset.theme==="dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  $("#themeBtn").addEventListener("click", ()=>{ root.dataset.theme = dark() ? "light" : "dark"; });
+})();
+
+/* ---------- start ---------- */
+(async function init(){
+  go("auth");
+  try {
+    if (window.claude && window.claude.use){
+      const [db,user,dl] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("downloads")]);
+      X.db = db; X.user = user; X.dl = dl;
+      if (user){
+        X.uid = await user.id();
+        X.canEdit = await user.canEdit();
+        const me = await user.me();
+        X.profileName = me.name || "";
+      }
+      await loadAccounts();
+    }
+  } catch(e){}
+  X.ready = true;
+  X.authTab = X.accounts.length ? "in" : (X.uid ? "up" : "in");
+  X.draft.name = X.accounts.length ? "" : (X.profileName || X.name);
+  if (X.route==="auth"){
+    const last = lsGet("tq-acc","");
+    if (last && X.accounts.some(a=>a.id===last)) signIn(last); else render();
+  }
+})();
+
+</script>
+</body>
+</html>
